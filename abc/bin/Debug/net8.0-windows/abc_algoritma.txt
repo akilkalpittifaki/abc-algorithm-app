@@ -1,0 +1,96 @@
+# YAPAY ARI KOLONİSİ (ABC) ALGORİTMASI - ÖZET YOL HARİTASI
+
+## TEMEL BİLEŞENLER
+
+- **Arı Türleri:**
+  1. Görevli Arılar: Belirli kaynaklara atanmış
+  2. Gözcü Arılar: Olasılıksal seçimle kaynak seçen
+  3. Kaşif Arılar: Limiti aşan kaynaklar için yeni kaynak arayan
+
+- **Parametreler:**
+  * CS = Koloni büyüklüğü (toplam arı sayısı)
+  * SN = Yiyecek kaynağı sayısı (CS/2)
+  * D = Problem boyutu (değişken sayısı)
+  * L = Limit (kaynak terk etme sınırı)
+  * MaxIter = Maksimum iterasyon sayısı
+
+## FORMÜLLER
+
+1. **Amaç Fonksiyonu:** f(x) = Σ(xᵢ²) → Minimizasyon problemi
+
+2. **Uygunluk Hesaplama:**
+   ```
+   fitness_i = { 1/(1+f(x)), eğer f(x) ≥ 0
+               { 1+|f(x)|,   eğer f(x) < 0
+   ```
+
+3. **Yeni Aday Çözüm Üretme (Eşitlik 3.2):**
+   ```
+   v_i,j = x_i,j + φ_i,j * (x_i,j - x_k,j)
+   ```
+   φ_i,j: [-1, 1] aralığında rastgele sayı
+
+4. **Olasılık Hesaplama (Eşitlik 3.5):**
+   ```
+   p_i = fitness_i / Σ(fitness_n)
+   ```
+
+## ALGORİTMA AKIŞI
+
+1. **BAŞLANGIÇ ADIMI**
+   - `BaslangicPopulasyonunuOlustur()`
+   - Rastgele SN adet kaynak oluştur
+   - Her kaynak için değer ve uygunluk hesapla
+
+2. **GÖREVLİ ARI FAZI**
+   - `GorevliArilariGonder()`
+   - Her görevli arı mevcut kaynağında Eşitlik 3.2 ile yeni aday üretir
+   - Daha iyi ise kaynağı günceller, değilse başarısızlık sayacı artar
+
+3. **GÖZCÜ ARI FAZI**
+   - `GozcuArilariGonder()`
+   - Eşitlik 3.5 ile olasılık hesapla
+   - Rulet tekerleği ile kaynak seç
+   - Eşitlik 3.2 ile yeni aday üret
+   - Daha iyi ise güncelle, değilse başarısızlık sayacı artar
+
+4. **KAŞİF ARI FAZI**
+   - `KasifArilariGonder()`
+   - Başarısızlık sayacı limiti aşan kaynakları terk et
+   - Yeni rastgele kaynak oluştur
+
+5. **EN İYİ ÇÖZÜM GÜNCELLEME**
+   - `GenelEnIyiKaynagiGuncelle()`
+   - Mevcut iterasyonun en iyisini bul
+   - Global en iyiyi güncelle
+
+## ALGORİTMA ÇALIŞMA SIRASI
+
+```
+- Calistir() fonksiyonu (Ana kontrol fonksiyonu)
+  |
+  ├── BaslangicPopulasyonunuOlustur()
+  |
+  └── Her iterasyon için:
+      |
+      ├── GorevliArilariGonder()
+      |   └── YeniAdayCozumUret() fonksiyonu kullanılır
+      |
+      ├── GozcuArilariGonder()
+      |   └── YeniAdayCozumUret() fonksiyonu kullanılır
+      |
+      ├── GenelEnIyiKaynagiGuncelle()
+      |
+      └── KasifArilariGonder()
+```
+
+## ÖZET ADIMLAR
+
+1. Rastgele ilk popülasyonu oluştur
+2. TEKRARLA:
+   - Görevli arı fazı (Mevcut kaynağı iyileştir)
+   - Gözcü arı fazı (Olasılıklı seçimle kaynak iyileştir)
+   - En iyi çözümü güncelle
+   - Kaşif arı fazı (Tükenmiş kaynakları yenile)
+3. Maksimum iterasyon sayısına ulaşınca dur
+4. En iyi çözümü döndür

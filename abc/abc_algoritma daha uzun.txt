@@ -1,0 +1,172 @@
+# YAPAY ARI KOLONİSİ (ABC) ALGORİTMASI - ÇALIŞMA MANTIĞI
+
+## GİRİŞ
+
+Yapay Arı Kolonisi (Artificial Bee Colony - ABC) algoritması, bal arılarının yiyecek arama davranışını taklit eden bir optimizasyon algoritmasıdır. Bu algoritma, özellikle global optimizasyon problemlerinde etkili sonuçlar vermektedir.
+
+ABC algoritması üç temel arı türünün davranışını modellemektedir:
+- **Görevli Arılar (Employed Bees)**: Belirli bir yiyecek kaynağına atanmış arılardır.
+- **Gözcü Arılar (Onlooker Bees)**: Görevli arıların paylaştıkları bilgilere göre kaynak seçen arılardır.
+- **Kaşif Arılar (Scout Bees)**: Yeni yiyecek kaynakları arayan arılardır.
+
+## ALGORİTMA PARAMETRELERİ
+
+Algoritmanın başlıca parametreleri:
+- **CS (Koloni Büyüklüğü)**: Toplam arı sayısı
+- **SN (Yiyecek Kaynağı Sayısı)**: SN = CS / 2
+- **D (Problem Boyutu)**: Karar değişkeni sayısı
+- **Limit (L)**: Bir kaynağın terk edilmesi için geliştirilememe sınırı
+- **Maksimum İterasyon**: Algoritmanın çalışacağı maksimum döngü sayısı
+- **Alt ve Üst Sınırlar**: Değişkenlerin değer aralığı (-5, 5)
+
+## AMAÇ FONKSİYONU VE UYGUNLUK HESAPLAMA
+
+### Amaç Fonksiyonu
+Bu uygulamada kullanılan amaç fonksiyonu:
+```
+f(x) = x₁² + x₂²  (D=2 için)
+```
+
+Genel formül:
+```
+f(x) = Σ(xᵢ²)  (i=1 ile D arası)
+```
+
+### Uygunluk (Fitness) Fonksiyonu
+Minimizasyon problemi için uygunluk fonksiyonu:
+```
+           { 1/(1+f(x)),   eğer f(x) ≥ 0
+fitness_i = {
+           { 1+|f(x)|,     eğer f(x) < 0
+```
+
+## ALGORİTMANIN ADIM ADIM ÇALIŞMASI
+
+### 1. BAŞLANGIÇ POPÜLASYONUNUN OLUŞTURULMASI
+
+```csharp
+// Dosya: ABCAlgoritmasi.cs, Satır: ~60
+private void BaslangicPopulasyonunuOlustur()
+```
+
+- Kolonideki yiyecek kaynağı sayısı (SN) hesaplanır: SN = CS / 2
+- Alt ve üst sınırlar arasında rastgele D boyutlu çözümler (yiyecek kaynakları) oluşturulur
+- Her bir kaynağın amaç fonksiyonu değeri ve uygunluk değeri hesaplanır
+- Başarısızlık sayaçları sıfırlanır
+
+### 2. GÖREVLİ ARI FAZI
+
+```csharp
+// Dosya: ABCAlgoritmasi.cs, Satır: ~77
+private void GorevliArilariGonder()
+```
+
+- Her görevli arı, kendi kaynağı etrafında yeni bir çözüm arar
+- Rastgele seçilen bir boyut değiştirilir
+- **Eşitlik 3.2** kullanılarak yeni bir aday çözüm (v_i) üretilir:
+  ```
+  v_i,j = x_i,j + φ_i,j * (x_i,j - x_k,j)
+  ```
+  
+- Aday çözüm için amaç fonksiyonu ve uygunluk değeri hesaplanır
+- Açgözlü seçim yapılır: Eğer aday çözüm daha iyiyse, mevcut çözümün yerine geçer
+- Eğer çözüm geliştirilememişse, başarısızlık sayacı bir arttırılır
+
+### 3. GÖZCÜ ARI FAZI
+
+```csharp
+// Dosya: ABCAlgoritmasi.cs, Satır: ~146
+private void GozcuArilariGonder()
+```
+
+- Gözcü arılar için olasılık değerleri (**Eşitlik 3.5**) hesaplanır:
+  ```
+  p_i = fitness_i / Σ(fitness_n)
+  ```
+  
+- Rulet tekerleği seçim yöntemi kullanılarak, gözcü arılar için kaynak seçilir
+- Seçilen kaynaklar etrafında yeni aday çözümler üretilir (Görevli Arı Fazındaki gibi)
+- Açgözlü seçim yapılır
+- Çözüm geliştirilememişse, başarısızlık sayacı bir arttırılır
+
+### 4. KAŞİF ARI FAZI
+
+```csharp
+// Dosya: ABCAlgoritmasi.cs, Satır: ~193
+private void KasifArilariGonder()
+```
+
+- Başarısızlık sayacı limiti aşan kaynaklar için:
+  - Kaynak terk edilir
+  - Yerine rastgele yeni bir kaynak oluşturulur
+  - Başarısızlık sayacı sıfırlanır
+
+### 5. EN İYİ ÇÖZÜMÜN GÜNCELLENMESİ
+
+```csharp
+// Dosya: ABCAlgoritmasi.cs, Satır: ~208
+private void GenelEnIyiKaynagiGuncelle()
+```
+
+- Mevcut iterasyondaki en iyi kaynağı bul
+- Eğer global en iyi çözümden daha iyiyse, global en iyi çözümü güncelle
+
+## ANA ALGORİTMA DÖNGÜSÜ
+
+```csharp
+// Dosya: ABCAlgoritmasi.cs, Satır: ~231
+public YiyecekKaynagi Calistir()
+```
+
+```
+1. Başlangıç popülasyonunu oluştur
+2. TEKRARLA:
+   a. Görevli arıları gönder
+   b. Gözcü arıları gönder
+   c. En iyi çözümü güncelle
+   d. Kaşif arıları gönder
+   DURMA KRİTERİ: Maksimum iterasyon sayısına ulaşılana kadar
+3. En iyi çözümü döndür
+```
+
+## YİYECEK KAYNAĞI (ÇÖZÜM) TEMSİLİ
+
+```csharp
+// Dosya: YiyecekKaynagi.cs, Satır: ~14
+public class YiyecekKaynagi
+```
+
+Her yiyecek kaynağı şu özelliklere sahiptir:
+- **Pozisyon** *(Satır: ~29)*: Karar değişkenlerinin değerlerini tutan bir dizidir (x1, x2, ..., xD)
+- **Değer** *(Satır: ~36)*: Amaç fonksiyonu sonucu (f(x))
+- **Uygunluk** *(Satır: ~43)*: Fitness değeri
+- **Başarısızlık Sayacı** *(Satır: ~50)*: Kaynağın kaç kez geliştirilmeye çalışıldığı ve başarısız olduğunu takip eder
+
+Diğer önemli metotlar:
+```csharp
+// Dosya: YiyecekKaynagi.cs, Satır: ~72
+public void DegerHesapla() // Amaç fonksiyonu değerini hesaplar
+
+// Dosya: YiyecekKaynagi.cs, Satır: ~87
+public void UygunlukHesapla() // Uygunluk değerini hesaplar
+
+// Dosya: YiyecekKaynagi.cs, Satır: ~107
+public void SinirlariKontrolEt() // Çözümün sınırlar içinde olmasını sağlar
+```
+
+## ÇIKTILAR
+
+Algoritma çalıştırıldıktan sonra:
+1. En iyi amaç fonksiyonu değeri (f(x))
+2. En iyi çözümün pozisyonu (x1, x2, ...)
+3. Yakınsama grafiği (iterasyonlara göre en iyi değerler)
+
+## ÖRNEK ÇALIŞMA (CS/2=3 için)
+
+Örnek bir çalıştırmada:
+1. Başlangıçta 3 adet rastgele yiyecek kaynağı oluşturulur
+2. Her kaynak için f(x) ve fitness değerleri hesaplanır
+3. Görevli arılar, mevcut kaynakları iyileştirmeye çalışır
+4. Gözcü arılar, fitness değerlerine göre kaynak seçerek iyileştirmeye çalışır
+5. Limit aşıldığında kaşif arılar yeni kaynaklar üretir
+6. İterasyonlar bittiğinde en iyi kaynak (çözüm) sonuç olarak döndürülür
